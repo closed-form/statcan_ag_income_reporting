@@ -34,3 +34,6 @@ docs/
 po/*~
 # RStudio Connect folder
 rsconnect/
+# PDF Files
+*.pdf
+
