@@ -1,0 +1,51 @@
+---
+title: '**ATDP Report**'
+author: "`r paste0('Produced By: ',Sys.getenv('USERNAME'))`"
+date: "`r format(Sys.time(), '%a %b %d, %Y @ %X')`"
+output:
+  pdf_document: default
+  word_document: default
+documentclass: article
+abstract: "**Automatically generated report on user-selected variables from the Agricultural Taxation Data Program administered by Statistics Canada. Results are as-is and not subject to the original programmer's review. **"
+fontsize: 11pt
+header-includes: \usepackage[default]{droidsans} \usepackage{geometry} \geometry{top=1in,left=1in,bottom=1in,right=1in}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_packages, include=FALSE}
+
+library(tidyverse)
+library(devtools)
+library(tinytex)
+library(kableExtra)
+library(lubridate)
+library(stringr)
+
+```
+
+
+```{r import_data, include=FALSE}
+
+todays_date<-paste0("(",
+                    month(ymd(Sys.Date()),label = TRUE),". ",
+                    day(ymd(Sys.Date())),", ",
+                    year(ymd(Sys.Date())),")")
+
+```
+
+\newpage
+
+# Preamble
+
+
+
+# Report for Selected Variables
+
+```{r produce_report, results='asis'}
+
+
+
+```
