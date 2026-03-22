@@ -23,7 +23,8 @@ required_packages<-c("tidyverse",
                      "lubridate",
                      "stringr",
                      "remotes",
-                     "scales")
+                     "scales",
+                     "ggcorrplot")
 
 needed_packages<-setdiff(required_packages,
                          present_packages)
@@ -52,6 +53,7 @@ library(lubridate)
 library(stringr)
 library(scales)
 library(cansim)
+library(ggcorrplot)
 
 rm(present_packages,
    weird_packages,

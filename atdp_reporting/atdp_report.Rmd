@@ -11,7 +11,7 @@ header-includes: \usepackage[default]{droidsans} \usepackage{geometry} \geometry
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.width = 7, fig.height = 5, dpi = 300)
 ```
 
 ```{r load_packages, include=FALSE}
@@ -22,12 +22,14 @@ library(tinytex)
 library(kableExtra)
 library(lubridate)
 library(stringr)
+library(scales)
 
 ```
 
 
 ```{r import_data, include=FALSE}
 
+#load("atdp_reporting/atdp_data.RData")
 load("atdp_data.RData")
 
 ```
@@ -50,16 +52,187 @@ The selected level of analytical complexity is: **`r selected_complexity`**
 
 \newpage
 
-# Report for Selected Variables
-
 ```{r process_data, include=FALSE}
 
+reports<-as.list(rep(0,length(selected_vars)))
 
+if(selected_complexity=="Simple (Summary, Graphs)"){
+  for(v in 1:length(reports)){reports[[v]]<-as.list(rep(0,2))}
+}
+if(selected_complexity=="Expanded (Simple + Linear Fit)"){
+  for(v in 1:length(reports)){reports[[v]]<-as.list(rep(0,3))}
+}
+if(selected_complexity=="Complex (Expanded + Correlation)"){
+  for(v in 1:length(reports)){reports[[v]]<-as.list(rep(0,3))}
+}
+
+names(reports)<-selected_vars
+
+for(v in 1:length(selected_vars)){
+  
+  loop_data<-selected_atdp %>%
+    mutate(Estimates=as.character(Estimates),
+           REF_DATE=round(as.numeric(REF_DATE),0)) %>%
+    filter(Estimates==selected_vars[v]) %>%
+    mutate(Date=REF_DATE,
+           Value=VALUE,
+           Trend=REF_DATE-min(REF_DATE)+1)
+  
+  names(reports[[v]])[1]<-"summary"
+  names(reports[[v]])[2]<-"graph"
+  
+  # Summary
+  
+  var_summary<-c(summary(loop_data$VALUE),sd(loop_data$VALUE))
+  names(var_summary)[7]<-"SDev."
+  var_summary_values<-as.numeric(round(var_summary,0))
+  var_summary_values<-format(var_summary_values,
+                             nsmall=0,
+                             big.mark=",")
+  var_summary_names<-names(var_summary)
+  var_summary<-as.data.frame(
+    cbind(var_summary_names,
+          var_summary_values))
+  names(var_summary)<-c("name","value")
+  
+  var_summary<-paste0("* ",
+                      var_summary$name,
+                      " - ",
+                      var_summary$value)
+  
+  reports[[v]][[1]]<-var_summary
+  
+  rm(var_summary_values,
+     var_summary_names,
+     var_summary)
+  
+  # Graphs
+  
+  ymin<-min(0,as.numeric(min(loop_data$Value))*1.2)
+  ymax<-max(as.numeric(loop_data$Value))*1.2
+  
+  var_graph<-suppressMessages(
+    ggplot(data = loop_data,
+           aes(Date,
+               Value)) +
+      geom_line() +
+      geom_point() +
+      ylim(ymin,
+           ymax) +
+      scale_y_continuous(labels = scales::comma) +
+      scale_x_continuous(labels = scales::label_number(
+        accuracy = 1,
+        big.mark = "")) +
+      ggtitle(selected_vars[v])
+  )
+  
+  reports[[v]][[2]]<-var_graph
+  
+  rm(ymin,
+     ymax,
+     var_graph)
+  
+  if((selected_complexity=="Expanded (Simple + Linear Fit)")|
+     (selected_complexity=="Complex (Expanded + Correlation)")){
+    
+    names(reports[[v]])[3]<-"linear"
+    
+    # Linear fit
+    
+    var_linear<-lm(as.numeric(loop_data$Value)~loop_data$Trend)
+    
+    linear_summary<-summary(var_linear)
+    
+    var_linear_summary<-c(
+      paste0("* Intercept: ",
+             format(round(linear_summary$coefficients[1,1],0),
+                    nsmall=0,
+                    big.mark=","),
+             " (t = ",round(linear_summary$coefficients[1,3],1),")"),
+      paste0("* Trend: ",
+             format(round(linear_summary$coefficients[2,1],0),
+                    nsmall=0,
+                    big.mark=","),
+             " (t = ",round(linear_summary$coefficients[2,3],1),")"))
+    
+    reports[[v]][[3]]<-var_linear_summary
+    
+    rm(var_linear,
+       linear_summary,
+       var_linear_summary)
+    
+  }
+  
+}
+
+rm(v)
+
+if(selected_complexity=="Complex (Expanded + Correlation)"){
+  
+  # Correlation
+  
+  var_cor_frame<-selected_atdp %>%
+    mutate(value=as.numeric(VALUE)) %>%
+    select(value,
+           REF_DATE,
+           Estimates) %>%
+    pivot_wider(names_from = "Estimates",
+                values_from = "value") %>%
+    select(-REF_DATE)
+  
+  var_cor_matrix<-data.matrix(var_cor_frame)
+  
+  var_p_matrix<-round(cor_pmat(var_cor_matrix),3)
+  var_cor_matrix<-round(cor(var_cor_matrix),2)
+  
+  var_cor_plot<-suppressMessages(ggcorrplot(
+    var_cor_matrix,
+    p.mat = var_p_matrix,
+    method = "circle",
+    type = "lower", 
+    lab = TRUE,
+    title = "Correlation Matrix of Selected Data",
+    ggtheme = theme_minimal))
+  
+  rm(var_cor_frame,
+     var_cor_matrix,
+     var_p_matrix)
+  
+}
 
 ```
 
 ```{r produce_report, results='asis',echo=FALSE}
 
+for(v in 1:length(reports)){
+  
+  cat(paste0("# ","Report: ",names(reports)[v],"\n"))
+  
+  for(r in 1:length(reports[[v]])){
+    
+    if(r==1){
+      cat(paste0("## ","Basic Summary","\n"))
+      cat(reports[[v]][[1]],sep = "\n")
+    }
+    cat("\n")
+    if(r==2){
+      cat(paste0("## ","Graphic Summary","\n"))
+      print(reports[[v]][[2]])
+      cat("\n")
+    }
+    cat("\n")
+    if(r==3){
+      cat(paste0("## ","Linear Trend Model","\n"))
+      cat(reports[[v]][[3]],sep = "\n")
+    }
+    cat("\n")
+  }
+  
+  cat("\\newpage")
+  
+}
 
+cat(paste0("# ","Report: All Vars. Correlation","\n"))
+print(var_cor_plot)
 
 ```
