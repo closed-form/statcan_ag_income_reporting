@@ -22,7 +22,8 @@ required_packages<-c("tidyverse",
                      "kableExtra",
                      "lubridate",
                      "stringr",
-                     "remotes")
+                     "remotes",
+                     "scales")
 
 needed_packages<-setdiff(required_packages,
                          present_packages)
@@ -39,8 +40,8 @@ if(sum(as.numeric(present_packages=="qs"))==0){
   remotes::install_version("qs", version = "0.27.3")
 }
 
-if(sum(as.numeric(present_packages=="statcanR"))==0){
-  pak::pak('warint/statcanR')
+if(sum(as.numeric(present_packages=="cansim"))==0){
+  install.packages("cansim")
 }
 
 library(tidyverse)
@@ -49,7 +50,8 @@ library(tinytex)
 library(kableExtra)
 library(lubridate)
 library(stringr)
-library(statcanR)
+library(scales)
+library(cansim)
 
 rm(present_packages,
    weird_packages,
@@ -59,8 +61,8 @@ rm(present_packages,
 
 #### Import Data ####
 
-atdp<-statcan_data(tableNumber = "32-10-0136-01",
-                   lang = "eng") %>%
+atdp<-get_cansim(cansimTableNumber = "32-10-0136-01",
+                 language = "english") %>%
   filter(!is.na(VALUE))
 
 estimate_types<-c("Total estimate",
@@ -90,14 +92,14 @@ selected_type<-select.list(
   graphics = TRUE)
 
 selected_prov<-select.list(
-  choices = unique(atdp$GEO),
+  choices = unique(as.character(atdp$GEO)),
   title = "Select ONE province.",
   multiple = FALSE,
   graphics = TRUE)
 
 complexities<-c("Simple (Summary, Graphs)",
                 "Expanded (Simple + Linear Fit)",
-                "Complex (Expanded + Correlation, MultiReg)")
+                "Complex (Expanded + Correlation)")
 
 selected_complexity<-select.list(
   choices = complexities,
