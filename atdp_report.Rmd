@@ -4,7 +4,6 @@ author: "`r paste0('Produced By: ',Sys.getenv('USERNAME'))`"
 date: "`r format(Sys.time(), '%a %b %d, %Y @ %X')`"
 output:
   pdf_document: default
-  word_document: default
 documentclass: article
 abstract: "**Automatically generated report on user-selected variables from the Agricultural Taxation Data Program administered by Statistics Canada. Results are as-is and not subject to the original programmer's review.**"
 fontsize: 11pt
@@ -17,82 +16,37 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r load_packages, include=FALSE}
 
-present_packages<-as.data.frame(installed.packages())$Package
-
-weird_packages<-c("vctrs",
-                  "xfun")
-
-needed_weird_packages<-setdiff(weird_packages,
-                               present_packages)
-
-if(length(needed_weird_packages)>0){
-  for(i in 1:length(needed_weird_packages)){
-    install.packages(needed_weird_packages[i],
-                     dependencies = TRUE)
-  }
-  rm(i)
-}
-
-required_packages<-c("tidyverse",
-                     "devtools",
-                     "tinytex",
-                     "kableExtra",
-                     "lubridate",
-                     "stringr",
-                     "remotes")
-
-needed_packages<-setdiff(required_packages,
-                         present_packages)
-
-if(length(needed_packages)>0){
-  for(i in 1:length(needed_packages)){
-    install.packages(needed_packages[i],
-                     dependencies = TRUE)
-  }
-  rm(i)
-}
-
 library(tidyverse)
 library(devtools)
 library(tinytex)
 library(kableExtra)
 library(lubridate)
 library(stringr)
-library(remotes)
-
-if(sum(as.numeric(present_packages=="qs"))==0){
-  remotes::install_version("qs", version = "0.27.3")
-}
-
-if(sum(as.numeric(present_packages=="statcanR"))==0){
-  pak::pak('warint/statcanR')
-}
-
-library(statcanR)
-
-rm(present_packages,
-   weird_packages,
-   needed_weird_packages,
-   required_packages,
-   needed_packages)
 
 ```
 
 
 ```{r import_data, include=FALSE}
 
-todays_date<-paste0("(",
-                    month(ymd(Sys.Date()),label = TRUE),". ",
-                    day(ymd(Sys.Date())),", ",
-                    year(ymd(Sys.Date())),")")
+load("atdp_data.RData")
 
 ```
 
-\newpage
-
 # Preamble
 
+The user has selected the following variables for `r selected_prov`:
 
+```{r report_vars, results='asis',echo=FALSE}
+
+cat("\n")
+cat(paste0("* ",selected_vars),
+    sep = "\n")
+
+```
+
+The data run from `r min(selected_atdp$REF_DATE)` to `r max(selected_atdp$REF_DATE)`
+
+\newpage
 
 # Report for Selected Variables
 
