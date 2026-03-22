@@ -34,7 +34,7 @@ load("atdp_data.RData")
 
 # Preamble
 
-The user has selected the following variables for `r selected_prov`:
+The user has selected the following variables for **`r selected_prov`**:
 
 ```{r report_vars, results='asis',echo=FALSE}
 
@@ -44,7 +44,9 @@ cat(paste0("* ",selected_vars),
 
 ```
 
-The data run from `r min(selected_atdp$REF_DATE)` to `r max(selected_atdp$REF_DATE)`
+The data run from **`r min(selected_atdp$REF_DATE)` to `r max(selected_atdp$REF_DATE)`**.
+
+The selected level of analytical complexity is: **`r selected_complexity`**
 
 \newpage
 

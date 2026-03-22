@@ -95,6 +95,16 @@ selected_prov<-select.list(
   multiple = FALSE,
   graphics = TRUE)
 
+complexities<-c("Simple (Summary, Graphs)",
+                "Expanded (Simple + Linear Fit)",
+                "Complex (Expanded + Correlation, MultiReg)")
+
+selected_complexity<-select.list(
+  choices = complexities,
+  title = "Select level of complexity.",
+  multiple = FALSE,
+  graphics = TRUE)
+
 selected_atdp<-atdp %>%
   filter(Estimates %in% selected_vars,
          GEO==selected_prov,
@@ -103,25 +113,33 @@ selected_atdp<-atdp %>%
          `Revenue class`=="All revenue classes")
 
 rm(estimate_types,
-   vars)
+   vars,
+   complexities)
 
 save(selected_atdp,
      selected_vars,
      selected_prov,
      selected_type,
-     file = "atdp_data.RData")
+     selected_complexity,
+     file = paste0(getwd(),
+                   "/atdp_reporting/",
+                   "atdp_data.RData"))
 
 rm(selected_atdp,
    selected_vars,
    selected_prov,
-   selected_type)
+   selected_type,
+   selected_complexity,
+   atdp)
 
 #### Render Markdown Doc ####
 
 rmarkdown::render(
-  input = "atdp_report.Rmd",
+  input = paste0(getwd(),
+                 "/atdp_reporting/atdp_report.Rmd"),
   output_format = "pdf_document",
-  output_file = paste0("atdp_report_",
+  output_file = paste0(getwd(),
+                       "/atdp_report_",
                        Sys.getenv('USERNAME'),"_",
                        format(Sys.time(),
                               '%Y-%m-%d_%H-%M-%S'),
