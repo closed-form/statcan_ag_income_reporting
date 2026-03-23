@@ -45,11 +45,6 @@ if(sum(as.numeric(present_packages=="cansim"))==0){
   install.packages("cansim")
 }
 
-if(sum(as.numeric(present_packages=="tinytex"))==0){
-  install.packages("tinytex")
-  tinytex::install_tinytex()
-}
-
 library(tidyverse)
 library(devtools)
 library(tinytex)
