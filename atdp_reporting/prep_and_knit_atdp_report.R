@@ -24,8 +24,7 @@ required_packages<-c("tidyverse",
                      "stringr",
                      "remotes",
                      "scales",
-                     "ggcorrplot",
-                     "pdflatex")
+                     "ggcorrplot")
 
 needed_packages<-setdiff(required_packages,
                          present_packages)
@@ -44,6 +43,11 @@ if(sum(as.numeric(present_packages=="qs"))==0){
 
 if(sum(as.numeric(present_packages=="cansim"))==0){
   install.packages("cansim")
+}
+
+if(sum(as.numeric(present_packages=="tinytex"))==0){
+  install.packages("tinytex")
+  tinytex::install_tinytex()
 }
 
 library(tidyverse)
