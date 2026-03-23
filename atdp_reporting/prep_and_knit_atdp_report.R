@@ -24,7 +24,8 @@ required_packages<-c("tidyverse",
                      "stringr",
                      "remotes",
                      "scales",
-                     "ggcorrplot")
+                     "ggcorrplot",
+                     "pdflatex")
 
 needed_packages<-setdiff(required_packages,
                          present_packages)
