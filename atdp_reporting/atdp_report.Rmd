@@ -191,7 +191,8 @@ for(v in 1:length(selected_vars)){
                     se=FALSE,
                     col="red",
                     lty=2,
-                    lwd=0.75) +
+                    lwd=0.75,
+                    formula = 'y ~ x') +
         geom_line() +
         geom_point() +
         ggtitle(selected_vars[v]) + 
@@ -229,6 +230,31 @@ if(selected_complexity=="Complex (Expanded + Correlation)"){
   
   var_cor_frame<-selected_atdp %>%
     mutate(value=as.numeric(VALUE)) %>%
+    mutate(Estimates=gsub("Revenue - ",
+                          "",
+                          Estimates),
+           Estimates=gsub("Expense - ",
+                          "",
+                          Estimates),
+           Estimates=gsub(" revenues",
+                          " rev.",
+                          Estimates),
+           Estimates=gsub(" expenses",
+                          " exp.",
+                          Estimates),
+           Estimates=gsub(" operating",
+                          " op.",
+                          Estimates),
+           Estimates=gsub(" and ",
+                          "/",
+                          Estimates),
+           Estimates=gsub(",.*$",
+                          "",
+                          Estimates),
+           Estimates=gsub("\\(.*$",
+                          "",
+                          Estimates)
+           ) %>%
     select(value,
            REF_DATE,
            Estimates) %>%
