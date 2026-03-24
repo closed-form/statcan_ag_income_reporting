@@ -35,7 +35,7 @@ Within the atdp_reporting subfolder there a two files:
 
 The user only needs to **open prep_and_knit_atdp_report.R**, then do the following:
 
-1.  Hit Contol+A
+1.  Hit Control+A
 2.  Hit Control+Enter
 3.  Make selections in the popup menus when prompted
 4.  Access the output within `statcan_ag_income_reporting/atdp_reporting`
