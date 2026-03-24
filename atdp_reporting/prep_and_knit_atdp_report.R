@@ -63,9 +63,64 @@ rm(present_packages,
 
 #### Import Data ####
 
-atdp<-get_cansim(cansimTableNumber = "32-10-0136-01",
-                 language = "english") %>%
-  filter(!is.na(VALUE))
+new_load<-0
+
+if(!file.exists(paste0(getwd(),
+                       "/atdp_reporting/",
+                       "atdp_data.RData"))){
+  
+  atdp<-get_cansim(cansimTableNumber = "32-10-0136",
+                   language = "english") %>%
+    filter(!is.na(VALUE))
+  atdp_issue_date<-list_cansim_cubes() %>%
+    filter(cansim_table_number=="32-10-0136")
+  atdp_issue_date<-atdp_issue_date$releaseTime
+  
+  save(atdp,
+       atdp_issue_date,
+       file = paste0(getwd(),
+                     "/atdp_reporting/",
+                     "atdp_data.RData"))
+
+  new_load<-1
+  
+}
+
+if((file.exists(paste0(getwd(),
+                       "/atdp_reporting/",
+                       "atdp_data.RData")))&
+   (new_load==0)){
+  
+  load(paste0(getwd(),
+              "/atdp_reporting/",
+              "atdp_data.RData"))
+  
+  check_atdp_issue_date<-list_cansim_cubes() %>%
+    filter(cansim_table_number=="32-10-0136")
+  check_atdp_issue_date<-check_atdp_issue_date$releaseTime
+  
+  if(atdp_issue_date!=check_atdp_issue_date){
+    
+    atdp<-get_cansim(cansimTableNumber = "32-10-0136",
+                     language = "english") %>%
+      filter(!is.na(VALUE))
+    atdp_issue_date<-list_cansim_cubes() %>%
+      filter(cansim_table_number=="32-10-0136")
+    atdp_issue_date<-check_atdp_issue_date$releaseTime
+    
+    save(atdp,
+         atdp_issue_date,
+         file = paste0(getwd(),
+                       "/atdp_reporting/",
+                       "atdp_data.RData"))
+    
+  }
+  
+  rm(check_atdp_issue_date)
+  
+}
+
+rm(new_load)
 
 estimate_types<-c("Total estimate",
                   "Average per farm")
@@ -125,16 +180,18 @@ save(selected_atdp,
      selected_prov,
      selected_type,
      selected_complexity,
+     atdp_issue_date,
      file = paste0(getwd(),
                    "/atdp_reporting/",
-                   "atdp_data.RData"))
+                   "session_data.RData"))
 
 rm(selected_atdp,
    selected_vars,
    selected_prov,
    selected_type,
    selected_complexity,
-   atdp)
+   atdp,
+   atdp_issue_date)
 
 #### Render Markdown Doc ####
 
