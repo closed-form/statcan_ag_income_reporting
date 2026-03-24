@@ -7,7 +7,7 @@ It consists of a main repository with an R Project file (for RStudio users to ea
 
 The user must have the ***pdflatex*** package installed on their computer for the Rmd file to be knitted successfully. To ensure they have the package, they can do the following:
 
-## **Recommended Approach**
+## Recommended Approach
 
 **Download and install mixtex at https://miktex.org/download**
 
