@@ -83,6 +83,8 @@ if(!file.exists(paste0(getwd(),
                      "atdp_data.RData"))
   
   rm(atdp_issue_date)
+
+  new_load<-1
   
 }
 
