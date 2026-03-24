@@ -63,6 +63,8 @@ rm(present_packages,
 
 #### Import Data ####
 
+new_load<-0
+
 if(!file.exists(paste0(getwd(),
                        "/atdp_reporting/",
                        "atdp_data.RData"))){
@@ -72,7 +74,7 @@ if(!file.exists(paste0(getwd(),
     filter(!is.na(VALUE))
   atdp_issue_date<-list_cansim_cubes() %>%
     filter(cansim_table_number=="32-10-0136")
-  atdp_issue_date<-check_atdp_issue_date$releaseTime
+  atdp_issue_date<-atdp_issue_date$releaseTime
   
   save(atdp,
        atdp_issue_date,
@@ -84,9 +86,10 @@ if(!file.exists(paste0(getwd(),
   
 }
 
-if(file.exists(paste0(getwd(),
+if((file.exists(paste0(getwd(),
                        "/atdp_reporting/",
-                       "atdp_data.RData"))){
+                       "atdp_data.RData")))&
+   (new_load==0)){
   
   load(paste0(getwd(),
               "/atdp_reporting/",
@@ -117,6 +120,8 @@ if(file.exists(paste0(getwd(),
      check_atdp_issue_date)
   
 }
+
+rm(new_load)
 
 estimate_types<-c("Total estimate",
                   "Average per farm")
