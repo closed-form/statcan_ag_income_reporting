@@ -81,8 +81,6 @@ if(!file.exists(paste0(getwd(),
        file = paste0(getwd(),
                      "/atdp_reporting/",
                      "atdp_data.RData"))
-  
-  rm(atdp_issue_date)
 
   new_load<-1
   
@@ -118,8 +116,7 @@ if((file.exists(paste0(getwd(),
     
   }
   
-  rm(atdp_issue_date,
-     check_atdp_issue_date)
+  rm(check_atdp_issue_date)
   
 }
 
@@ -183,6 +180,7 @@ save(selected_atdp,
      selected_prov,
      selected_type,
      selected_complexity,
+     atdp_issue_date,
      file = paste0(getwd(),
                    "/atdp_reporting/",
                    "session_data.RData"))
@@ -192,7 +190,8 @@ rm(selected_atdp,
    selected_prov,
    selected_type,
    selected_complexity,
-   atdp)
+   atdp,
+   atdp_issue_date)
 
 #### Render Markdown Doc ####
 
