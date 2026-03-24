@@ -23,6 +23,7 @@ library(kableExtra)
 library(lubridate)
 library(stringr)
 library(scales)
+library(ggcorrplot)
 
 ```
 
@@ -30,7 +31,7 @@ library(scales)
 ```{r import_data, include=FALSE}
 
 #load("atdp_reporting/atdp_data.RData")
-load("atdp_data.RData")
+load("session_data.RData")
 
 ```
 
@@ -46,7 +47,7 @@ cat(paste0("* ",selected_vars),
 
 ```
 
-The data run from **`r min(selected_atdp$REF_DATE)` to `r max(selected_atdp$REF_DATE)`**.
+The data run from **`r min(selected_atdp$REF_DATE)` to `r max(selected_atdp$REF_DATE)`** and were last updated on **`r atdp_issue_date`**.
 
 Reported values are at the **`r selected_type`** level.
 
