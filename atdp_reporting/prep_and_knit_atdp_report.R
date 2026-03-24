@@ -66,7 +66,7 @@ rm(present_packages,
 new_load<-0
 
 if(!file.exists(paste0(getwd(),
-                       "/atdp_reporting/",
+                       "/atdp_reporting/data/",
                        "atdp_data.RData"))){
   
   atdp<-get_cansim(cansimTableNumber = "32-10-0136",
@@ -79,7 +79,7 @@ if(!file.exists(paste0(getwd(),
   save(atdp,
        atdp_issue_date,
        file = paste0(getwd(),
-                     "/atdp_reporting/",
+                     "/atdp_reporting/data/",
                      "atdp_data.RData"))
 
   new_load<-1
@@ -87,12 +87,12 @@ if(!file.exists(paste0(getwd(),
 }
 
 if((file.exists(paste0(getwd(),
-                       "/atdp_reporting/",
+                       "/atdp_reporting/data/",
                        "atdp_data.RData")))&
    (new_load==0)){
   
   load(paste0(getwd(),
-              "/atdp_reporting/",
+              "/atdp_reporting/data/",
               "atdp_data.RData"))
   
   check_atdp_issue_date<-list_cansim_cubes() %>%
@@ -111,7 +111,7 @@ if((file.exists(paste0(getwd(),
     save(atdp,
          atdp_issue_date,
          file = paste0(getwd(),
-                       "/atdp_reporting/",
+                       "/atdp_reporting/data/",
                        "atdp_data.RData"))
     
   }
@@ -182,7 +182,7 @@ save(selected_atdp,
      selected_complexity,
      atdp_issue_date,
      file = paste0(getwd(),
-                   "/atdp_reporting/",
+                   "/atdp_reporting/data/",
                    "session_data.RData"))
 
 rm(selected_atdp,
