@@ -8,17 +8,26 @@ It consists of a main repository with an R Project file (for RStudio users to ea
 The user must have the ***pdflatex*** package installed on their computer for the Rmd file to be knitted successfully. To ensure they have the package, they can do the following:
 
 ## **Recommended Approach**
+
 **Download and install mixtex at https://miktex.org/download**
+
 ## Alternative Approach
+
 Run the following commands in an R script or in your console:
+
 ```
 install.packages("tinytex")
 tinytex::install_tinytex()
 ```
+
 **NOTE**: This approach does not work on some corporately managed machines
+
 # Usage
+
 Each subolder has its own usage guide.
+
 ## ATDP Reporting
+
 Within the atdp_reporting subfolder there a two files:
 * atdp_report.Rmd
 * prep_and_knit_atdp_report.R
