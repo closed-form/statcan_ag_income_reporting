@@ -31,7 +31,7 @@ library(ggcorrplot)
 ```{r import_data, include=FALSE}
 
 #load("atdp_reporting/atdp_data.RData")
-load("atdp_data.RData")
+load("session_data.RData")
 
 ```
 
