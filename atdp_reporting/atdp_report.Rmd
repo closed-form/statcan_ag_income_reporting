@@ -114,26 +114,37 @@ for(v in 1:length(selected_vars)){
   ymin<-min(0,as.numeric(min(loop_data$Value))*1.2)
   ymax<-max(as.numeric(loop_data$Value))*1.2
   
+  vert_offset<-ymax*0.05
+  horz_offset<--0.2
+  
   var_graph<-suppressMessages(
     ggplot(data = loop_data,
            aes(Date,
                Value)) +
       geom_line() +
       geom_point() +
-      ylim(ymin,
-           ymax) +
-      scale_y_continuous(labels = scales::comma) +
+      ggtitle(selected_vars[v]) + 
+      geom_text(aes(label = format(Value,
+                                   nsmall=0,
+                                   big.mark=",")),
+                nudge_y = vert_offset,
+                nudge_x = horz_offset,
+                check_overlap = TRUE,
+                size=2.25) +
       scale_x_continuous(labels = scales::label_number(
         accuracy = 1,
         big.mark = "")) +
-      ggtitle(selected_vars[v])
+      scale_y_continuous(labels = scales::comma,
+                         limits = c(ymin,ymax))
   )
   
   reports[[v]][[2]]<-var_graph
   
   rm(ymin,
      ymax,
-     var_graph)
+     var_graph,
+     vert_offset,
+     horz_offset)
   
   if((selected_complexity=="Expanded (Simple + Linear Fit)")|
      (selected_complexity=="Complex (Expanded + Correlation)")){
@@ -163,6 +174,48 @@ for(v in 1:length(selected_vars)){
     rm(var_linear,
        linear_summary,
        var_linear_summary)
+    
+    # Added fit line to graph
+    
+    ymin<-min(0,as.numeric(min(loop_data$Value))*1.2)
+    ymax<-max(as.numeric(loop_data$Value))*1.2
+    
+    vert_offset<-ymax*0.05
+    horz_offset<--0.2
+    
+    var_graph<-suppressMessages(
+      ggplot(data = loop_data,
+             aes(Date,
+                 Value)) + 
+        geom_smooth(method = "lm",
+                    se=FALSE,
+                    col="red",
+                    lty=2,
+                    lwd=0.75) +
+        geom_line() +
+        geom_point() +
+        ggtitle(selected_vars[v]) + 
+        geom_text(aes(label = format(Value,
+                                     nsmall=0,
+                                     big.mark=",")),
+                  nudge_y = vert_offset,
+                  nudge_x = horz_offset,
+                  check_overlap = TRUE,
+                  size=2.25) +
+        scale_x_continuous(labels = scales::label_number(
+          accuracy = 1,
+          big.mark = "")) +
+        scale_y_continuous(labels = scales::comma,
+                           limits = c(ymin,ymax))
+    )
+    
+    reports[[v]][[2]]<-var_graph
+    
+    rm(ymin,
+       ymax,
+       var_graph,
+       vert_offset,
+       horz_offset)
     
   }
   
