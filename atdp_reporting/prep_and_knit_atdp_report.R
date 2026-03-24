@@ -63,15 +63,9 @@ rm(present_packages,
 
 #### Import Data ####
 
-load(paste0(getwd(),
-            "/atdp_reporting/",
-            "atdp_data.RData"))
-
-check_atdp_issue_date<-list_cansim_cubes() %>%
-  filter(cansim_table_number=="32-10-0136")
-check_atdp_issue_date<-check_atdp_issue_date$releaseTime
-
-if(atdp_issue_date!=check_atdp_issue_date){
+if(!file.exists(paste0(getwd(),
+                       "/atdp_reporting/",
+                       "atdp_data.RData"))){
   
   atdp<-get_cansim(cansimTableNumber = "32-10-0136",
                    language = "english") %>%
@@ -86,10 +80,43 @@ if(atdp_issue_date!=check_atdp_issue_date){
                      "/atdp_reporting/",
                      "atdp_data.RData"))
   
+  rm(atdp_issue_date)
+  
 }
 
-rm(atdp_issue_date,
-   check_atdp_issue_date)
+if(file.exists(paste0(getwd(),
+                       "/atdp_reporting/",
+                       "atdp_data.RData"))){
+  
+  load(paste0(getwd(),
+              "/atdp_reporting/",
+              "atdp_data.RData"))
+  
+  check_atdp_issue_date<-list_cansim_cubes() %>%
+    filter(cansim_table_number=="32-10-0136")
+  check_atdp_issue_date<-check_atdp_issue_date$releaseTime
+  
+  if(atdp_issue_date!=check_atdp_issue_date){
+    
+    atdp<-get_cansim(cansimTableNumber = "32-10-0136",
+                     language = "english") %>%
+      filter(!is.na(VALUE))
+    atdp_issue_date<-list_cansim_cubes() %>%
+      filter(cansim_table_number=="32-10-0136")
+    atdp_issue_date<-check_atdp_issue_date$releaseTime
+    
+    save(atdp,
+         atdp_issue_date,
+         file = paste0(getwd(),
+                       "/atdp_reporting/",
+                       "atdp_data.RData"))
+    
+  }
+  
+  rm(atdp_issue_date,
+     check_atdp_issue_date)
+  
+}
 
 estimate_types<-c("Total estimate",
                   "Average per farm")
