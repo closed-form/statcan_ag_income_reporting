@@ -29,10 +29,12 @@ Each subolder has its own usage guide.
 ## ATDP Reporting
 
 Within the atdp_reporting subfolder there a two files:
+
 * atdp_report.Rmd
 * prep_and_knit_atdp_report.R
 
 The user only needs to **open prep_and_knit_atdp_report.R**, then do the following:
+
 1.  Hit Contol+A
 2.  Hit Control+Enter
 3.  Make selections in the popup menus when prompted
