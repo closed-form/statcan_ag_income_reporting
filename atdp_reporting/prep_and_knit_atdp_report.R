@@ -65,6 +65,12 @@ rm(present_packages,
 
 new_load<-0
 
+if(!dir.exists(paste0(getwd(),
+                      "/atdp_reporting/data"))){
+  dir.create(paste0(getwd(),
+                    "/atdp_reporting/data"))
+}
+
 if(!file.exists(paste0(getwd(),
                        "/atdp_reporting/data/",
                        "atdp_data.RData"))){
