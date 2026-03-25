@@ -511,7 +511,8 @@ for(v in 1:length(reports)){
     cat("\n")
     if(r==6){
       cat(paste0("## ","Complex Graphic Summary","\n"))
-      cat(reports[[v]][[5]],sep = "\n")
+      print(reports[[v]][[6]])
+      cat("\n")
     }
     cat("\n")
   }
