@@ -487,7 +487,7 @@ for(v in 1:length(reports)){
     cat("\n")
     if(r==2){
       cat(paste0("## ","Graphic Summary","\n"))
-      print(reports[[v]][[2]])
+      suppressWarnings(print(reports[[v]][[2]]))
       cat("\n")
     }
     cat("\n")
@@ -511,7 +511,7 @@ for(v in 1:length(reports)){
     cat("\n")
     if(r==6){
       cat(paste0("## ","Complex Graphic Summary","\n"))
-      print(reports[[v]][[6]])
+      suppressWarnings(print(reports[[v]][[6]]))
       cat("\n")
     }
     cat("\n")
@@ -522,6 +522,6 @@ for(v in 1:length(reports)){
 }
 
 cat(paste0("# ","Report: All Vars. Correlation","\n"))
-print(var_cor_plot)
+suppressWarnings(print(var_cor_plot))
 
 ```
