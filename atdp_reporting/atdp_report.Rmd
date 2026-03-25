@@ -68,7 +68,7 @@ if(selected_complexity=="Expanded (Simple + Linear Fit)"){
   for(v in 1:length(reports)){reports[[v]]<-as.list(rep(0,3))}
 }
 if(selected_complexity=="Complex (Expanded + Correlation)"){
-  for(v in 1:length(reports)){reports[[v]]<-as.list(rep(0,5))}
+  for(v in 1:length(reports)){reports[[v]]<-as.list(rep(0,6))}
 }
 
 names(reports)<-selected_vars
@@ -242,6 +242,8 @@ for(v in 1:length(selected_vars)){
       filter(!is.na(Value_m1))
     
     auto_result<-lm(var_auto_frame$Value~var_auto_frame$Value_m1)
+    auto_fitted<-auto_result$fitted.values
+    auto_fitted<-c(NA,auto_fitted)
     auto_result<-summary(auto_result)
     
     var_auto_summary<-c(
@@ -261,6 +263,11 @@ for(v in 1:length(selected_vars)){
                     big.mark=",")))
     
     reports[[v]][[4]]<-var_auto_summary
+    
+    rm(var_auto_frame,
+       adf_result,
+       auto_result,
+       var_auto_summary)
     
     # Multiple regression t-tests
     
@@ -317,6 +324,7 @@ for(v in 1:length(selected_vars)){
     var_mreg_x_best<-as.matrix(var_mreg_frame[,var_mreg_x_best])
     
     best_mreg<-lm(var_mreg_y~var_mreg_x_best)
+    mreg_fitted<-best_mreg$fitted.values
     best_mreg<-summary(best_mreg)
     
     row.names(best_mreg$coefficients)<-gsub("var_mreg_x_best",
@@ -348,6 +356,56 @@ for(v in 1:length(selected_vars)){
        best_mreg,
        var_mreg_x_best,
        var_best_summary)
+    
+    # Visualize more complex models
+    
+    loop_data$auto_fitted<-auto_fitted
+    loop_data$mreg_fitted<-mreg_fitted
+    
+    ymin<-min(0,as.numeric(min(loop_data$Value))*1.2)
+    ymax<-max(as.numeric(loop_data$Value))*1.2
+    
+    vert_offset<-ymax*0.05
+    horz_offset<--0.2
+    
+    var_graph<-suppressMessages(
+      ggplot(data = loop_data,
+             aes(x=Date,
+                 y=Value)) + 
+        geom_smooth(method = "lm",
+                    se=FALSE,
+                    col="red",
+                    lty=2,
+                    lwd=0.75,
+                    formula = 'y ~ x') +
+        geom_line(aes(y=auto_fitted),color="blue",lty=3,lwd=1) +
+        geom_line(aes(y=mreg_fitted),color="darkgreen",lty=3,lwd=1) +
+        geom_line(aes(y=Value)) +
+        geom_point(aes(y=Value)) +
+        ggtitle(selected_vars[v]) + 
+        geom_text(aes(label = format(Value,
+                                     nsmall=0,
+                                     big.mark=",")),
+                  nudge_y = vert_offset,
+                  nudge_x = horz_offset,
+                  check_overlap = TRUE,
+                  size=2.25) +
+        scale_x_continuous(labels = scales::label_number(
+          accuracy = 1,
+          big.mark = "")) +
+        scale_y_continuous(labels = scales::comma,
+                           limits = c(ymin,ymax))
+    )
+    
+    reports[[v]][[6]]<-var_graph
+    
+    rm(ymin,
+       ymax,
+       var_graph,
+       vert_offset,
+       horz_offset,
+       auto_fitted,
+       mreg_fitted)
     
   }
   
@@ -414,7 +472,7 @@ if(selected_complexity=="Complex (Expanded + Correlation)"){
 
 ```
 
-```{r produce_report, results='asis',echo=FALSE}
+```{r produce_report, echo=FALSE, results='asis'}
 
 for(v in 1:length(reports)){
   
@@ -434,19 +492,25 @@ for(v in 1:length(reports)){
     }
     cat("\n")
     if(r==3){
-      cat(paste0("## ","Linear Trend Model","\n"))
+      cat(paste0("## ","Linear Trend Model (RED line)","\n"))
       cat(reports[[v]][[3]],sep = "\n")
+      cat("\n")
+      cat("\\newpage")
+      cat("\n")
     }
     cat("\n")
-    cat("\\newpage")
-    cat("\n")
     if(r==4){
-      cat(paste0("## ","AR1 Model","\n"))
+      cat(paste0("## ","AR1 Model (BLUE line)","\n"))
       cat(reports[[v]][[4]],sep = "\n")
     }
     cat("\n")
     if(r==5){
-      cat(paste0("## ","Best Trend + 1 Var. Linear Model","\n"))
+      cat(paste0("## ","Best Trend + 1 Var. Linear Model (GREEN line)","\n"))
+      cat(reports[[v]][[5]],sep = "\n")
+    }
+    cat("\n")
+    if(r==6){
+      cat(paste0("## ","Complex Graphic Summary","\n"))
       cat(reports[[v]][[5]],sep = "\n")
     }
     cat("\n")
