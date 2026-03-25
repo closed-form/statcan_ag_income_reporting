@@ -24,11 +24,11 @@ tinytex::install_tinytex()
 
 # Usage
 
-Each subolder has its own usage guide.
+Each subfolder has its own usage guide.
 
 ## ATDP Reporting
 
-Within the atdp_reporting subfolder there a two files:
+Within the atdp_reporting subfolder there are two files:
 
 * atdp_report.Rmd
 * prep_and_knit_atdp_report.R
