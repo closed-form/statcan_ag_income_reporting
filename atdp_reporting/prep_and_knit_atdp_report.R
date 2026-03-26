@@ -24,7 +24,9 @@ required_packages<-c("tidyverse",
                      "stringr",
                      "remotes",
                      "scales",
-                     "ggcorrplot")
+                     "ggcorrplot",
+                     "leaps",
+                     "tseries")
 
 needed_packages<-setdiff(required_packages,
                          present_packages)
@@ -211,5 +213,3 @@ rmarkdown::render(
                        format(Sys.time(),
                               '%Y-%m-%d_%H-%M-%S'),
                        ".pdf"))
-
-rm(list=ls())

@@ -3,7 +3,10 @@ title: '**ATDP Report**'
 author: "`r paste0('Produced By: ',Sys.getenv('USERNAME'))`"
 date: "`r format(Sys.time(), '%a %b %d, %Y @ %X')`"
 output:
-  pdf_document: default
+  pdf_document:
+    toc: true
+    toc_depth: 1
+    number_sections: false
 documentclass: article
 abstract: "**Automatically generated report on user-selected variables from the Agricultural Taxation Data Program administered by Statistics Canada. Results are as-is and not subject to the original programmer's review.**"
 fontsize: 11pt
@@ -24,6 +27,8 @@ library(lubridate)
 library(stringr)
 library(scales)
 library(ggcorrplot)
+library(leaps)
+library(tseries)
 
 ```
 
@@ -34,6 +39,8 @@ load(paste0(getwd(),"/data/",
             "session_data.RData"))
 
 ```
+
+\newpage
 
 # Preamble
 
@@ -57,6 +64,48 @@ The selected level of analytical complexity is: **`r selected_complexity`**
 
 ```{r process_data, include=FALSE}
 
+trimmed_selected_atdp<-selected_atdp %>%
+  mutate(filter_estimate=Estimates) %>%
+  mutate(Estimates=gsub(paste0("Capital cost allowance (CCA)",
+                               " and amortization of tangible assets"),
+                        "CCA",
+                        Estimates),
+         Estimates=gsub(paste0("Net market income adjusted",
+                               " for capital cost allowance"),
+                        "Net market income adj. for CCA",
+                        Estimates),
+         Estimates=gsub(paste0("Net operating income adjusted",
+                               " for capital cost allowance"),
+                        "Net operating income adj. for CCA",
+                        Estimates),
+         Estimates=gsub(paste0(" and non-specified"),
+                        "",
+                        Estimates),
+         Estimates=gsub("Revenue - ",
+                        "",
+                        Estimates),
+         Estimates=gsub("Expense - ",
+                        "",
+                        Estimates),
+         Estimates=gsub(" revenues",
+                        " rev.",
+                        Estimates),
+         Estimates=gsub(" expenses",
+                        " exp.",
+                        Estimates),
+         Estimates=gsub(" operating",
+                        " op.",
+                        Estimates),
+         Estimates=gsub(" and ",
+                        "/",
+                        Estimates),
+         Estimates=gsub(",.*$",
+                        "",
+                        Estimates),
+         Estimates=gsub("\\(.*$",
+                        "",
+                        Estimates))
+
 reports<-as.list(rep(0,length(selected_vars)))
 
 if(selected_complexity=="Simple (Summary, Graphs)"){
@@ -66,12 +115,14 @@ if(selected_complexity=="Expanded (Simple + Linear Fit)"){
   for(v in 1:length(reports)){reports[[v]]<-as.list(rep(0,3))}
 }
 if(selected_complexity=="Complex (Expanded + Correlation)"){
-  for(v in 1:length(reports)){reports[[v]]<-as.list(rep(0,3))}
+  for(v in 1:length(reports)){reports[[v]]<-as.list(rep(0,6))}
 }
 
 names(reports)<-selected_vars
 
 for(v in 1:length(selected_vars)){
+  
+  # prepare loop data
   
   loop_data<-selected_atdp %>%
     mutate(Estimates=as.character(Estimates),
@@ -81,10 +132,10 @@ for(v in 1:length(selected_vars)){
            Value=VALUE,
            Trend=REF_DATE-min(REF_DATE)+1)
   
+  # Summary Statistics
+    
   names(reports[[v]])[1]<-"summary"
   names(reports[[v]])[2]<-"graph"
-  
-  # Summary
   
   var_summary<-c(summary(loop_data$VALUE),sd(loop_data$VALUE))
   names(var_summary)[7]<-"SDev."
@@ -162,12 +213,12 @@ for(v in 1:length(selected_vars)){
              format(round(linear_summary$coefficients[1,1],0),
                     nsmall=0,
                     big.mark=","),
-             " (t = ",round(linear_summary$coefficients[1,3],1),")"),
+             " (t = ",round(linear_summary$coefficients[1,3],2),")"),
       paste0("* Trend: ",
              format(round(linear_summary$coefficients[2,1],0),
                     nsmall=0,
                     big.mark=","),
-             " (t = ",round(linear_summary$coefficients[2,3],1),")"))
+             " (t = ",round(linear_summary$coefficients[2,3],2),")"))
     
     reports[[v]][[3]]<-var_linear_summary
     
@@ -175,7 +226,7 @@ for(v in 1:length(selected_vars)){
        linear_summary,
        var_linear_summary)
     
-    # Added fit line to graph
+    # Add fit line to graph
     
     ymin<-min(0,as.numeric(min(loop_data$Value))*1.2)
     ymax<-max(as.numeric(loop_data$Value))*1.2
@@ -220,6 +271,171 @@ for(v in 1:length(selected_vars)){
     
   }
   
+  if(selected_complexity=="Complex (Expanded + Correlation)"){
+    
+    # Autoregression/ADF Test
+    
+    names(reports[[v]])[5]<-"autoreg"
+    
+    var_auto_frame<-loop_data %>%
+      select(REF_DATE,
+             Value,
+             Trend) %>%
+      mutate(Value_m1=lag(Value,
+                          n=1,
+                          order_by = REF_DATE))
+    
+    adf_result<-adf.test(var_auto_frame$Value)
+    
+    var_auto_frame<-var_auto_frame %>%
+      filter(!is.na(Value_m1))
+    
+    auto_result<-lm(var_auto_frame$Value~var_auto_frame$Value_m1)
+    auto_fitted<-auto_result$fitted.values
+    auto_fitted<-c(NA,auto_fitted)
+    auto_result<-summary(auto_result)
+    
+    var_auto_summary<-c(
+      paste0("* Intercept: ",
+             format(round(auto_result$coefficients[1,1],0),
+                    nsmall=0,
+                    big.mark=","),
+             " (t = ",round(auto_result$coefficients[1,3],2),")"),
+      paste0("* Lag-1: ",
+             format(round(auto_result$coefficients[2,1],1),
+                    nsmall=0,
+                    big.mark=","),
+             " (t = ",round(auto_result$coefficients[2,3],2),")"),
+      paste0("* ADF Result: ",
+             format(round(as.numeric(adf_result$statistic),1),
+                    nsmall=0,
+                    big.mark=",")))
+    
+    reports[[v]][[5]]<-var_auto_summary
+    
+    rm(var_auto_frame,
+       adf_result,
+       auto_result,
+       var_auto_summary)
+    
+    # Multiple regression t-tests
+    
+    names(reports[[v]])[6]<-"multireg"
+    
+    var_mreg_frame<-trimmed_selected_atdp %>%
+      mutate(Value=as.numeric(VALUE),
+             Trend=as.numeric(REF_DATE)-min(as.numeric(REF_DATE))+1) %>%
+      select(Value,
+             Trend,
+             Estimates) %>%
+      pivot_wider(names_from = "Estimates",
+                  values_from = "Value")
+    
+    var_mreg_y<-as.vector(unlist(var_mreg_frame[,(v+1)]))
+    var_mreg_x<-1:(length(selected_vars)+1)
+    var_mreg_x<-var_mreg_x[which(var_mreg_x!=(v+1))]
+    var_mreg_x<-as.data.frame(var_mreg_frame[,var_mreg_x])
+    
+    best_mreg<-regsubsets(var_mreg_y~.,
+                          data = var_mreg_x,
+                          nbest = 1,
+                          method = "exhaustive",
+                          force.in = c(1))
+    best_mreg<-gsub("`",
+                    "",
+                    names(coef(best_mreg,1))[2:3])
+    
+    var_mreg_x_best<-which(names(var_mreg_x) %in% best_mreg)
+    var_mreg_x_best<-as.matrix(var_mreg_x[,var_mreg_x_best])
+    
+    best_mreg<-lm(var_mreg_y~var_mreg_x_best)
+    mreg_fitted<-best_mreg$fitted.values
+    best_mreg<-summary(best_mreg)
+    
+    row.names(best_mreg$coefficients)<-gsub("var_mreg_x_best",
+                                            "",
+                                            row.names(best_mreg$coefficients))
+    
+    var_best_summary<-c(
+      paste0("* Intercept: ",
+             format(round(best_mreg$coefficients[1,1],0),
+                    nsmall=0,
+                    big.mark=","),
+             " (t = ",round(best_mreg$coefficients[1,3],2),")"),
+      paste0("* Trend: ",
+             format(round(best_mreg$coefficients[2,1],0),
+                    nsmall=0,
+                    big.mark=","),
+             " (t = ",round(best_mreg$coefficients[2,3],2),")"),
+      paste0("* ",row.names(best_mreg$coefficients)[3],": ",
+             format(round(best_mreg$coefficients[3,1],2),
+                    nsmall=0,
+                    big.mark=","),
+             " (t = ",round(best_mreg$coefficients[3,3],2),")"))
+    
+    reports[[v]][[6]]<-var_best_summary
+    
+    rm(var_mreg_frame,
+       var_mreg_y,
+       var_mreg_x,
+       best_mreg,
+       var_mreg_x_best,
+       var_best_summary)
+    
+    # Visualize more complex models
+    
+    loop_data$auto_fitted<-auto_fitted
+    loop_data$mreg_fitted<-mreg_fitted
+    
+    ymin<-min(0,as.numeric(min(loop_data$Value))*1.2)
+    ymax<-max(as.numeric(loop_data$Value))*1.2
+    
+    vert_offset<-ymax*0.05
+    horz_offset<--0.2
+    
+    var_graph<-suppressMessages(
+      ggplot(data = loop_data,
+             aes(x=Date,
+                 y=Value)) + 
+        geom_smooth(method = "lm",
+                    se=FALSE,
+                    col="red",
+                    lty=2,
+                    lwd=0.75,
+                    formula = 'y ~ x') +
+        geom_line(aes(y=auto_fitted),color="blue",lty=3,lwd=1) +
+        geom_line(aes(y=mreg_fitted),color="darkgreen",lty=3,lwd=1) +
+        geom_line(aes(y=Value)) +
+        geom_point(aes(y=Value)) +
+        ggtitle(selected_vars[v]) + 
+        geom_text(aes(label = format(Value,
+                                     nsmall=0,
+                                     big.mark=",")),
+                  nudge_y = vert_offset,
+                  nudge_x = horz_offset,
+                  check_overlap = TRUE,
+                  size=2.25) +
+        scale_x_continuous(labels = scales::label_number(
+          accuracy = 1,
+          big.mark = "")) +
+        scale_y_continuous(labels = scales::comma,
+                           limits = c(ymin,ymax))
+    )
+    
+    reports[[v]][[4]]<-var_graph
+    
+    rm(ymin,
+       ymax,
+       var_graph,
+       vert_offset,
+       horz_offset,
+       auto_fitted,
+       mreg_fitted)
+    
+  }
+  
+  rm(loop_data)
+  
 }
 
 rm(v)
@@ -228,33 +444,11 @@ if(selected_complexity=="Complex (Expanded + Correlation)"){
   
   # Correlation
   
-  var_cor_frame<-selected_atdp %>%
+  var_cor_frame<-trimmed_selected_atdp %>%
     mutate(value=as.numeric(VALUE)) %>%
-    mutate(Estimates=gsub("Revenue - ",
-                          "",
-                          Estimates),
-           Estimates=gsub("Expense - ",
-                          "",
-                          Estimates),
-           Estimates=gsub(" revenues",
-                          " rev.",
-                          Estimates),
-           Estimates=gsub(" expenses",
-                          " exp.",
-                          Estimates),
-           Estimates=gsub(" operating",
-                          " op.",
-                          Estimates),
-           Estimates=gsub(" and ",
-                          "/",
-                          Estimates),
-           Estimates=gsub(",.*$",
-                          "",
-                          Estimates),
-           Estimates=gsub("\\(.*$",
-                          "",
-                          Estimates)
-           ) %>%
+    mutate(Estimates=abbreviate(names.arg = Estimates,
+                                minlength = 15,
+                                strict = FALSE)) %>%
     select(value,
            REF_DATE,
            Estimates) %>%
@@ -269,10 +463,14 @@ if(selected_complexity=="Complex (Expanded + Correlation)"){
   
   var_cor_plot<-suppressMessages(ggcorrplot(
     var_cor_matrix,
-    p.mat = var_p_matrix,
-    method = "circle",
-    type = "lower", 
-    lab = TRUE,
+    # p.mat = var_p_matrix,
+    # insig = "blank",
+    method = "square",
+    type = "full",
+    lab = FALSE,
+    show.diag = FALSE,
+    show.legend = TRUE,
+    colors = c("darkred","white","navyblue"),
     title = "Correlation Matrix of Selected Data",
     ggtheme = theme_minimal))
   
@@ -282,9 +480,11 @@ if(selected_complexity=="Complex (Expanded + Correlation)"){
   
 }
 
+rm(trimmed_selected_atdp)
+
 ```
 
-```{r produce_report, results='asis',echo=FALSE}
+```{r produce_report, echo=FALSE, results='asis'}
 
 for(v in 1:length(reports)){
   
@@ -295,17 +495,35 @@ for(v in 1:length(reports)){
     if(r==1){
       cat(paste0("## ","Basic Summary","\n"))
       cat(reports[[v]][[1]],sep = "\n")
+      cat("\n")
     }
-    cat("\n")
     if(r==2){
-      cat(paste0("## ","Graphic Summary","\n"))
-      print(reports[[v]][[2]])
+      cat(paste0("## ","Simple Graphic Summary","\n"))
+      suppressWarnings(print(reports[[v]][[2]]))
       cat("\n")
     }
     cat("\n")
     if(r==3){
-      cat(paste0("## ","Linear Trend Model","\n"))
+      cat(paste0("## ","Linear Trend Model (RED line)","\n"))
       cat(reports[[v]][[3]],sep = "\n")
+      cat("\n")
+      cat("\\newpage")
+      cat("\n")
+    }
+    if(r==4){
+      cat(paste0("## ","Complex Graphic Summary","\n"))
+      suppressWarnings(print(reports[[v]][[4]]))
+      cat("\n")
+    }
+    if(r==5){
+      cat(paste0("## ","AR1 Model (BLUE line)","\n"))
+      cat(reports[[v]][[5]],sep = "\n")
+      cat("\n")
+    }
+    if(r==6){
+      cat(paste0("## ","Best Trend + 1 Var. Linear Model (GREEN line)","\n"))
+      cat(reports[[v]][[6]],sep = "\n")
+      cat("\n")
     }
     cat("\n")
   }
@@ -315,6 +533,8 @@ for(v in 1:length(reports)){
 }
 
 cat(paste0("# ","Report: All Vars. Correlation","\n"))
-print(var_cor_plot)
+suppressWarnings(print(var_cor_plot))
+
+rm(list=ls())
 
 ```
