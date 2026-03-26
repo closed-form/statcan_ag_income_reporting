@@ -532,8 +532,12 @@ for(v in 1:length(reports)){
   
 }
 
-cat(paste0("# ","Report: All Vars. Correlation","\n"))
-suppressWarnings(print(var_cor_plot))
+if(selected_complexity=="Complex (Expanded + Correlation)"){
+  
+  cat(paste0("# ","Report: All Vars. Correlation","\n"))
+  suppressWarnings(print(var_cor_plot))
+  
+}
 
 rm(list=ls())
 
