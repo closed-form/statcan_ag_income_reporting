@@ -473,6 +473,9 @@ if(selected_complexity=="Complex (Expanded + Correlation)"){
            Estimates=gsub("\\(.*$",
                           "",
                           Estimates)) %>%
+    mutate(Estimates=abbreviate(names.arg = Estimates,
+                                minlength = 15,
+                                strict = FALSE)) %>%
     select(value,
            REF_DATE,
            Estimates) %>%
@@ -487,10 +490,14 @@ if(selected_complexity=="Complex (Expanded + Correlation)"){
   
   var_cor_plot<-suppressMessages(ggcorrplot(
     var_cor_matrix,
-    p.mat = var_p_matrix,
-    method = "circle",
-    type = "lower", 
-    lab = TRUE,
+    # p.mat = var_p_matrix,
+    # insig = "blank",
+    method = "square",
+    type = "full",
+    lab = FALSE,
+    show.diag = FALSE,
+    show.legend = TRUE,
+    colors = c("darkred","white","navyblue"),
     title = "Correlation Matrix of Selected Data",
     ggtheme = theme_minimal))
   
