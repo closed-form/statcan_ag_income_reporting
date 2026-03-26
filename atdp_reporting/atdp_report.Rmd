@@ -321,8 +321,7 @@ for(v in 1:length(selected_vars)){
                     names(coef(best_mreg,1))[2:3])
     
     var_mreg_x_best<-which(names(var_mreg_x) %in% best_mreg)
-    var_mreg_x_best[2]<-var_mreg_x_best[2]+1
-    var_mreg_x_best<-as.matrix(var_mreg_frame[,var_mreg_x_best])
+    var_mreg_x_best<-as.matrix(var_mreg_x[,var_mreg_x_best])
     
     best_mreg<-lm(var_mreg_y~var_mreg_x_best)
     mreg_fitted<-best_mreg$fitted.values
