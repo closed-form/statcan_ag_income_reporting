@@ -226,7 +226,7 @@ for(v in 1:length(selected_vars)){
     
     # Autoregression/ADF Test
     
-    names(reports[[v]])[4]<-"autoreg"
+    names(reports[[v]])[5]<-"autoreg"
     
     var_auto_frame<-loop_data %>%
       select(REF_DATE,
@@ -262,7 +262,7 @@ for(v in 1:length(selected_vars)){
                     nsmall=0,
                     big.mark=",")))
     
-    reports[[v]][[4]]<-var_auto_summary
+    reports[[v]][[5]]<-var_auto_summary
     
     rm(var_auto_frame,
        adf_result,
@@ -271,7 +271,7 @@ for(v in 1:length(selected_vars)){
     
     # Multiple regression t-tests
     
-    names(reports[[v]])[5]<-"multireg"
+    names(reports[[v]])[6]<-"multireg"
     
     var_mreg_frame<-selected_atdp %>%
       mutate(Value=as.numeric(VALUE),
@@ -348,7 +348,7 @@ for(v in 1:length(selected_vars)){
                     big.mark=","),
              " (t = ",round(best_mreg$coefficients[3,3],2),")"))
     
-    reports[[v]][[5]]<-var_best_summary
+    reports[[v]][[6]]<-var_best_summary
     
     rm(var_mreg_frame,
        var_mreg_y,
@@ -397,7 +397,7 @@ for(v in 1:length(selected_vars)){
                            limits = c(ymin,ymax))
     )
     
-    reports[[v]][[6]]<-var_graph
+    reports[[v]][[4]]<-var_graph
     
     rm(ymin,
        ymax,
@@ -483,10 +483,10 @@ for(v in 1:length(reports)){
     if(r==1){
       cat(paste0("## ","Basic Summary","\n"))
       cat(reports[[v]][[1]],sep = "\n")
+      cat("\n")
     }
-    cat("\n")
     if(r==2){
-      cat(paste0("## ","Graphic Summary","\n"))
+      cat(paste0("## ","Simple Graphic Summary","\n"))
       suppressWarnings(print(reports[[v]][[2]]))
       cat("\n")
     }
@@ -498,20 +498,19 @@ for(v in 1:length(reports)){
       cat("\\newpage")
       cat("\n")
     }
-    cat("\n")
     if(r==4){
-      cat(paste0("## ","AR1 Model (BLUE line)","\n"))
-      cat(reports[[v]][[4]],sep = "\n")
-    }
-    cat("\n")
-    if(r==5){
-      cat(paste0("## ","Best Trend + 1 Var. Linear Model (GREEN line)","\n"))
-      cat(reports[[v]][[5]],sep = "\n")
-    }
-    cat("\n")
-    if(r==6){
       cat(paste0("## ","Complex Graphic Summary","\n"))
-      suppressWarnings(print(reports[[v]][[6]]))
+      suppressWarnings(print(reports[[v]][[4]]))
+      cat("\n")
+    }
+    if(r==5){
+      cat(paste0("## ","AR1 Model (BLUE line)","\n"))
+      cat(reports[[v]][[5]],sep = "\n")
+      cat("\n")
+    }
+    if(r==6){
+      cat(paste0("## ","Best Trend + 1 Var. Linear Model (GREEN line)","\n"))
+      cat(reports[[v]][[6]],sep = "\n")
       cat("\n")
     }
     cat("\n")
