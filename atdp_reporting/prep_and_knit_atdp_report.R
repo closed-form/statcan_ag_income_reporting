@@ -213,5 +213,3 @@ rmarkdown::render(
                        format(Sys.time(),
                               '%Y-%m-%d_%H-%M-%S'),
                        ".pdf"))
-
-rm(list=ls())

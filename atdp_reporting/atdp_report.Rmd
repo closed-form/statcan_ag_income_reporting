@@ -3,7 +3,10 @@ title: '**ATDP Report**'
 author: "`r paste0('Produced By: ',Sys.getenv('USERNAME'))`"
 date: "`r format(Sys.time(), '%a %b %d, %Y @ %X')`"
 output:
-  pdf_document: default
+  pdf_document:
+    toc: true
+    toc_depth: 1
+    number_sections: false
 documentclass: article
 abstract: "**Automatically generated report on user-selected variables from the Agricultural Taxation Data Program administered by Statistics Canada. Results are as-is and not subject to the original programmer's review.**"
 fontsize: 11pt
@@ -37,6 +40,8 @@ load(paste0(getwd(),"/data/",
 
 ```
 
+\newpage
+
 # Preamble
 
 The user has selected the following variables for **`r selected_prov`**:
@@ -59,6 +64,48 @@ The selected level of analytical complexity is: **`r selected_complexity`**
 
 ```{r process_data, include=FALSE}
 
+trimmed_selected_atdp<-selected_atdp %>%
+  mutate(filter_estimate=Estimates) %>%
+  mutate(Estimates=gsub(paste0("Capital cost allowance (CCA)",
+                               " and amortization of tangible assets"),
+                        "CCA",
+                        Estimates),
+         Estimates=gsub(paste0("Net market income adjusted",
+                               " for capital cost allowance"),
+                        "Net market income adj. for CCA",
+                        Estimates),
+         Estimates=gsub(paste0("Net operating income adjusted",
+                               " for capital cost allowance"),
+                        "Net operating income adj. for CCA",
+                        Estimates),
+         Estimates=gsub(paste0(" and non-specified"),
+                        "",
+                        Estimates),
+         Estimates=gsub("Revenue - ",
+                        "",
+                        Estimates),
+         Estimates=gsub("Expense - ",
+                        "",
+                        Estimates),
+         Estimates=gsub(" revenues",
+                        " rev.",
+                        Estimates),
+         Estimates=gsub(" expenses",
+                        " exp.",
+                        Estimates),
+         Estimates=gsub(" operating",
+                        " op.",
+                        Estimates),
+         Estimates=gsub(" and ",
+                        "/",
+                        Estimates),
+         Estimates=gsub(",.*$",
+                        "",
+                        Estimates),
+         Estimates=gsub("\\(.*$",
+                        "",
+                        Estimates))
+
 reports<-as.list(rep(0,length(selected_vars)))
 
 if(selected_complexity=="Simple (Summary, Graphs)"){
@@ -75,6 +122,8 @@ names(reports)<-selected_vars
 
 for(v in 1:length(selected_vars)){
   
+  # prepare loop data
+  
   loop_data<-selected_atdp %>%
     mutate(Estimates=as.character(Estimates),
            REF_DATE=round(as.numeric(REF_DATE),0)) %>%
@@ -83,10 +132,10 @@ for(v in 1:length(selected_vars)){
            Value=VALUE,
            Trend=REF_DATE-min(REF_DATE)+1)
   
+  # Summary Statistics
+    
   names(reports[[v]])[1]<-"summary"
   names(reports[[v]])[2]<-"graph"
-  
-  # Summary Statistics
   
   var_summary<-c(summary(loop_data$VALUE),sd(loop_data$VALUE))
   names(var_summary)[7]<-"SDev."
@@ -273,48 +322,9 @@ for(v in 1:length(selected_vars)){
     
     names(reports[[v]])[6]<-"multireg"
     
-    var_mreg_frame<-selected_atdp %>%
+    var_mreg_frame<-trimmed_selected_atdp %>%
       mutate(Value=as.numeric(VALUE),
              Trend=as.numeric(REF_DATE)-min(as.numeric(REF_DATE))+1) %>%
-      mutate(Estimates=gsub(paste0("Capital cost allowance (CCA)",
-                                   " and amortization of tangible assets"),
-                            "CCA",
-                            Estimates),
-             Estimates=gsub(paste0("Net market income adjusted",
-                                   " for capital cost allowance"),
-                            "Net market income adj. for CCA",
-                            Estimates),
-             Estimates=gsub(paste0("Net operating income adjusted",
-                                   " for capital cost allowance"),
-                            "Net operating income adj. for CCA",
-                            Estimates),
-             Estimates=gsub(paste0(" and non-specified"),
-                            "",
-                            Estimates),
-             Estimates=gsub("Revenue - ",
-                            "",
-                            Estimates),
-             Estimates=gsub("Expense - ",
-                            "",
-                            Estimates),
-             Estimates=gsub(" revenues",
-                            " rev.",
-                            Estimates),
-             Estimates=gsub(" expenses",
-                            " exp.",
-                            Estimates),
-             Estimates=gsub(" operating",
-                            " op.",
-                            Estimates),
-             Estimates=gsub(" and ",
-                            "/",
-                            Estimates),
-             Estimates=gsub(",.*$",
-                            "",
-                            Estimates),
-             Estimates=gsub("\\(.*$",
-                            "",
-                            Estimates)) %>%
       select(Value,
              Trend,
              Estimates) %>%
@@ -424,6 +434,8 @@ for(v in 1:length(selected_vars)){
     
   }
   
+  rm(loop_data)
+  
 }
 
 rm(v)
@@ -432,47 +444,8 @@ if(selected_complexity=="Complex (Expanded + Correlation)"){
   
   # Correlation
   
-  var_cor_frame<-selected_atdp %>%
+  var_cor_frame<-trimmed_selected_atdp %>%
     mutate(value=as.numeric(VALUE)) %>%
-    mutate(Estimates=gsub(paste0("Capital cost allowance (CCA)",
-                                 " and amortization of tangible assets"),
-                          "CCA",
-                          Estimates),
-           Estimates=gsub(paste0("Net market income adjusted",
-                                 " for capital cost allowance"),
-                          "Net market income adj. for CCA",
-                          Estimates),
-           Estimates=gsub(paste0("Net operating income adjusted",
-                                 " for capital cost allowance"),
-                          "Net operating income adj. for CCA",
-                          Estimates),
-           Estimates=gsub(paste0(" and non-specified"),
-                          "",
-                          Estimates),
-           Estimates=gsub("Revenue - ",
-                          "",
-                          Estimates),
-           Estimates=gsub("Expense - ",
-                          "",
-                          Estimates),
-           Estimates=gsub(" revenues",
-                          " rev.",
-                          Estimates),
-           Estimates=gsub(" expenses",
-                          " exp.",
-                          Estimates),
-           Estimates=gsub(" operating",
-                          " op.",
-                          Estimates),
-           Estimates=gsub(" and ",
-                          "/",
-                          Estimates),
-           Estimates=gsub(",.*$",
-                          "",
-                          Estimates),
-           Estimates=gsub("\\(.*$",
-                          "",
-                          Estimates)) %>%
     mutate(Estimates=abbreviate(names.arg = Estimates,
                                 minlength = 15,
                                 strict = FALSE)) %>%
@@ -506,6 +479,8 @@ if(selected_complexity=="Complex (Expanded + Correlation)"){
      var_p_matrix)
   
 }
+
+rm(trimmed_selected_atdp)
 
 ```
 
@@ -559,5 +534,7 @@ for(v in 1:length(reports)){
 
 cat(paste0("# ","Report: All Vars. Correlation","\n"))
 suppressWarnings(print(var_cor_plot))
+
+rm(list=ls())
 
 ```
