@@ -48,8 +48,6 @@ The user has selected the following variables for **`r selected_prov`**:
 
 ```{r report_vars, results='asis',echo=FALSE}
 
-# test for alt device commits
-
 cat("\n")
 cat(paste0("* ",selected_vars),
     sep = "\n")
